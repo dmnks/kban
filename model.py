@@ -33,7 +33,7 @@ class Column(object):
     def paint(self, win, y, x):
         win.addstr(y, x, self.name.center(self.width))
         for i, card in enumerate(self.cards):
-            card.paint(win, y + 1 + (i * card.height), x)
+            card.paint(win, y + 2 + (i * card.height), x)
 
 
 class Workflow(object):
@@ -43,4 +43,4 @@ class Workflow(object):
 
     def paint(self, win, y, x):
         for i, column in enumerate(self.columns):
-            column.paint(win, y, x + (i * (column.width + 1)))
+            column.paint(win, y, x + (i * (column.width + 2)))
