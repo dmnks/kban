@@ -24,6 +24,7 @@ class Column(object):
         self.name = name
         self.width = width
         self._cards = []
+        self._cursor = 0
 
     @property
     def cards(self):
@@ -33,6 +34,19 @@ class Column(object):
         card.width = self.width
         self._cards.append(card)
 
+    def _select(self, down):
+        delta = 1 if down else -1
+        self._cards[self._cursor].selected = False
+        self._cursor += delta
+        self._cursor %= len(self._cards)
+        self._cards[self._cursor].selected = True
+
+    def down(self):
+        self._select(True)
+
+    def up(self):
+        self._select(False)
+
     def paint(self, win, y, x):
         win.addstr(y, x, self.name.center(self.width))
         for i, card in enumerate(self.cards):
@@ -40,10 +54,15 @@ class Column(object):
 
 
 class Workflow(object):
-    def __init__(self, name):
+    def __init__(self, name, win, y, x):
         self.name = name
         self.columns = []
 
-    def paint(self, win, y, x):
+        self.win = win
+        self.y = y
+        self.x = x
+
+    def paint(self):
+        self.win.clear()
         for i, column in enumerate(self.columns):
-            column.paint(win, y, x + (i * (column.width + 2)))
+            column.paint(self.win, self.y, self.x + (i * (column.width + 2)))

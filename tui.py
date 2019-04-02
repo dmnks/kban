@@ -5,10 +5,8 @@ from model import Workflow, Column, Card
 
 def main(stdscr):
     curs_set(False)
-    # Clear screen
-    stdscr.clear()
 
-    wf = Workflow('default')
+    wf = Workflow('default', stdscr, 0, 0)
     col1 = Column('Backlog', 25)
     col2 = Column('Ready', 25)
     wf.columns.append(col1)
@@ -25,10 +23,18 @@ def main(stdscr):
     col2.add(c5)
     c1.selected = True
 
-    wf.paint(stdscr, 0, 0)
+    wf.paint()
 
-    stdscr.refresh()
-    stdscr.getkey()
+    while True:
+        c = stdscr.getch()
+        if c == ord('q'):
+            break
+        elif c == ord('j'):
+            col1.down()
+            wf.paint()
+        elif c == ord('k'):
+            col1.up()
+            wf.paint()
 
 
 wrapper(main)
