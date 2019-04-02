@@ -1,17 +1,19 @@
+import curses
+
+
 class Card(object):
     def __init__(self, name):
         self.name = name
         self.width = 0
         self.height = 4
+        self.selected = False
 
     def paint(self, win, y, x):
-        w = self.width - 2
-        box = ['┌' + '─' * w + '┐',
-               '│' + self.name.center(w) + '│']
-        box += ['│' + ' ' * w + '│'] * (self.height - 3)
-        box += ['└' + '─' * w + '┘']
-        for i, line in enumerate(box):
-            win.addstr(y + i, x, line)
+        win.addstr(y, x, '▄' * self.width)
+        win.addstr(y + 1, x, self.name.center(self.width), curses.A_REVERSE)
+        for i in range(self.height - 3):
+            win.addstr(y + 2 + i, x, ' ' * self.width, curses.A_REVERSE)
+        win.addstr(y + (self.height - 1), x, '▀' * self.width)
 
 
 class Column(object):
@@ -31,7 +33,7 @@ class Column(object):
     def paint(self, win, y, x):
         win.addstr(y, x, self.name.center(self.width))
         for i, card in enumerate(self.cards):
-            card.paint(win, y + 2 + (i * card.height), x)
+            card.paint(win, y + 1 + (i * card.height), x)
 
 
 class Workflow(object):
@@ -41,4 +43,4 @@ class Workflow(object):
 
     def paint(self, win, y, x):
         for i, column in enumerate(self.columns):
-            column.paint(win, y, x + (i * column.width))
+            column.paint(win, y, x + (i * (column.width + 1)))

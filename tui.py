@@ -23,6 +23,7 @@ def main(stdscr):
     col1.add(c3)
     col2.add(c4)
     col2.add(c5)
+    c1.selected = True
 
     wf.paint(stdscr, 0, 0)
 
