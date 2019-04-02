@@ -9,11 +9,14 @@ class Card(object):
         self.selected = False
 
     def paint(self, win, y, x):
-        win.addstr(y, x, '▄' * self.width)
-        win.addstr(y + 1, x, self.name.center(self.width), curses.A_REVERSE)
+        reverse = curses.A_REVERSE if self.selected else 0
+        if reverse:
+            win.addstr(y, x, '▄' * self.width)
+        win.addstr(y + 1, x, self.name.center(self.width), reverse)
         for i in range(self.height - 3):
-            win.addstr(y + 2 + i, x, ' ' * self.width, curses.A_REVERSE)
-        win.addstr(y + (self.height - 1), x, '▀' * self.width)
+            win.addstr(y + 2 + i, x, ' ' * self.width, reverse)
+        if reverse:
+            win.addstr(y + (self.height - 1), x, '▀' * self.width)
 
 
 class Column(object):
