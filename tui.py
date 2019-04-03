@@ -9,8 +9,8 @@ def main(stdscr):
     wf = Workflow('default', stdscr, 0, 0)
     col1 = Column('Backlog', 25)
     col2 = Column('Ready', 25)
-    wf.columns.append(col1)
-    wf.columns.append(col2)
+    wf.add(col1)
+    wf.add(col2)
     c1 = Card('Example card 1')
     c2 = Card('Example card 2')
     c3 = Card('Example card 3')
@@ -29,7 +29,7 @@ def main(stdscr):
     col1.add(c7)
     col2.add(c8)
     col2.add(c9)
-    wf.cursor = 0
+    wf.selected = True
 
     wf.paint()
 
