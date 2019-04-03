@@ -61,11 +61,19 @@ class Column(object):
         return self._select(False)
 
     def paint(self, win, y, x):
+        cur = y
         start, end = self.viewport
-        win.addstr(y, x, self.name.center(self.width))
+        win.addstr(cur, x, self.name.center(self.width))
+        cur += 1
+        if start > 0:
+            win.addstr(cur, x, '▲'.center(self.width))
+        cur += 1
         for i, card in enumerate(self._cards[start:end]):
             card.selected = (i + start) == self.cursor
-            card.paint(win, y + 2 + (i * card.height), x)
+            card.paint(win, cur, x)
+            cur += card.height
+        if end < len(self._cards):
+            win.addstr(cur, x, '▼'.center(self.width))
 
 
 class Workflow(object):
