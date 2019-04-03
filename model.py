@@ -11,12 +11,13 @@ class Card(object):
     def paint(self, win, y, x):
         reverse = curses.A_REVERSE if self.selected else 0
         if reverse:
-            win.addstr(y, x, '▄' * self.width)
+            win.addstr(y, x, '▇' * self.width)
         win.addstr(y + 1, x, self.name.center(self.width), reverse)
         for i in range(self.height - 3):
             win.addstr(y + 2 + i, x, ' ' * self.width, reverse)
         if reverse:
-            win.addstr(y + (self.height - 1), x, '▀' * self.width)
+            win.addstr(y + (self.height - 1), x, '▁' * self.width,
+                       curses.A_REVERSE)
 
 
 class Column(object):
@@ -24,7 +25,7 @@ class Column(object):
         self.name = name
         self.cursor = -1
         self.width = width
-        self.viewport = (0, 3)
+        self.viewport = (0, 5)
         self._cards = []
 
     @property
