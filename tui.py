@@ -29,7 +29,7 @@ def main(stdscr):
     col1.add(c7)
     col2.add(c8)
     col2.add(c9)
-    col1.cursor = 0
+    wf.cursor = 0
 
     wf.paint()
 
@@ -38,10 +38,16 @@ def main(stdscr):
         if c == ord('q'):
             break
         elif c == ord('j'):
-            if col1.down():
+            if wf.down():
                 wf.paint()
         elif c == ord('k'):
-            if col1.up():
+            if wf.up():
+                wf.paint()
+        elif c == ord('l'):
+            if wf.right():
+                wf.paint()
+        elif c == ord('h'):
+            if wf.left():
                 wf.paint()
 
 

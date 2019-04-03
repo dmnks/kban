@@ -23,7 +23,8 @@ class Card(object):
 class Column(object):
     def __init__(self, name, width):
         self.name = name
-        self.cursor = -1
+        self.cursor = 0
+        self.selected = False
         self.width = width
         self.viewport = (0, 5)
         self._cards = []
@@ -69,7 +70,7 @@ class Column(object):
             win.addstr(cur, x, '▲'.center(self.width))
         cur += 1
         for i, card in enumerate(self._cards[start:end]):
-            card.selected = (i + start) == self.cursor
+            card.selected = self.selected and (i + start) == self.cursor
             card.paint(win, cur, x)
             cur += card.height
         if end < len(self._cards):
@@ -80,12 +81,45 @@ class Workflow(object):
     def __init__(self, name, win, y, x):
         self.name = name
         self.columns = []
+        self.cursor = -1
 
         self.win = win
         self.y = y
         self.x = x
 
+    def _select(self, right):
+        cursor = self.cursor
+        delta = 1 if right else -1
+        # vdelta = 0
+
+        cursor += delta
+        if cursor == -1 or cursor == len(self.columns):
+            return False
+        # if cursor == self.viewport[0] - 1:
+        #     vdelta = -1
+        # if cursor == self.viewport[1]:
+        #     vdelta = 1
+        # if vdelta != 0:
+        #     self.viewport = tuple(map(lambda x: x + vdelta, self.viewport))
+
+        self.cursor = cursor
+        return True
+
+    def right(self):
+        return self._select(True)
+
+    def left(self):
+        return self._select(False)
+
+    def down(self):
+        return self.columns[self.cursor].down()
+
+    def up(self):
+        return self.columns[self.cursor].up()
+
     def paint(self):
+        start = 0
         self.win.clear()
         for i, column in enumerate(self.columns):
+            column.selected = (i + start) == self.cursor
             column.paint(self.win, self.y, self.x + (i * (column.width + 2)))
