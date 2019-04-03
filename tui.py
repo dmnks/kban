@@ -16,12 +16,16 @@ def main(stdscr):
     c3 = Card('Example card 3')
     c4 = Card('Example card 4')
     c5 = Card('Example card 5')
+    c6 = Card('Example card 6')
+    c7 = Card('Example card 7')
     col1.add(c1)
     col1.add(c2)
     col1.add(c3)
-    col2.add(c4)
-    col2.add(c5)
-    c1.selected = True
+    col1.add(c4)
+    col1.add(c5)
+    col2.add(c6)
+    col2.add(c7)
+    col1.cursor = 0
 
     wf.paint()
 
@@ -30,11 +34,11 @@ def main(stdscr):
         if c == ord('q'):
             break
         elif c == ord('j'):
-            col1.down()
-            wf.paint()
+            if col1.down():
+                wf.paint()
         elif c == ord('k'):
-            col1.up()
-            wf.paint()
+            if col1.up():
+                wf.paint()
 
 
 wrapper(main)

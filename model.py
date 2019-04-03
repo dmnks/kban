@@ -22,9 +22,10 @@ class Card(object):
 class Column(object):
     def __init__(self, name, width):
         self.name = name
+        self.cursor = -1
         self.width = width
+        self.viewport = (0, 3)
         self._cards = []
-        self._cursor = 0
 
     @property
     def cards(self):
@@ -35,21 +36,34 @@ class Column(object):
         self._cards.append(card)
 
     def _select(self, down):
+        cursor = self.cursor
         delta = 1 if down else -1
-        self._cards[self._cursor].selected = False
-        self._cursor += delta
-        self._cursor %= len(self._cards)
-        self._cards[self._cursor].selected = True
+        vdelta = 0
+
+        cursor += delta
+        if cursor == -1 or cursor == len(self._cards):
+            return False
+        if cursor == self.viewport[0] - 1:
+            vdelta = -1
+        if cursor == self.viewport[1]:
+            vdelta = 1
+        if vdelta != 0:
+            self.viewport = tuple(map(lambda x: x + vdelta, self.viewport))
+
+        self.cursor = cursor
+        return True
 
     def down(self):
-        self._select(True)
+        return self._select(True)
 
     def up(self):
-        self._select(False)
+        return self._select(False)
 
     def paint(self, win, y, x):
+        start, end = self.viewport
         win.addstr(y, x, self.name.center(self.width))
-        for i, card in enumerate(self.cards):
+        for i, card in enumerate(self._cards[start:end]):
+            card.selected = (i + start) == self.cursor
             card.paint(win, y + 2 + (i * card.height), x)
 
 
