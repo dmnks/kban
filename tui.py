@@ -9,8 +9,10 @@ def main(stdscr):
     wf = Workflow('default', stdscr, 0, 0)
     col1 = Column('Backlog', 25)
     col2 = Column('Ready', 25)
+    col3 = Column('Done', 25)
     wf.add(col1)
     wf.add(col2)
+    wf.add(col3)
     c1 = Card('Example card 1')
     c2 = Card('Example card 2')
     c3 = Card('Example card 3')
@@ -20,6 +22,7 @@ def main(stdscr):
     c7 = Card('Example card 7')
     c8 = Card('Example card 8')
     c9 = Card('Example card 9')
+    c10 = Card('Example card 10')
     col1.add(c1)
     col1.add(c2)
     col1.add(c3)
@@ -29,7 +32,9 @@ def main(stdscr):
     col1.add(c7)
     col2.add(c8)
     col2.add(c9)
+    col3.add(c10)
     wf.selected = True
+    wf.viewport = (0, 2)
 
     wf.paint()
 
