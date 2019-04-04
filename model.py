@@ -2,11 +2,13 @@ import curses
 
 
 class List(object):
-    def __init__(self, items):
+    def __init__(self, items=None, height=5):
+        if items is None:
+            items = []
         self._items = items
+        self.viewport = (0, height)
         self.cursor = 0
         self.selected = False
-        self.viewport = (0, 5)
 
     def _select(self, down):
         cursor = self.cursor
@@ -55,10 +57,10 @@ class List(object):
 
 
 class Card(object):
-    def __init__(self, name):
+    def __init__(self, name, width=25, height=4):
         self.name = name
-        self.width = 0
-        self.height = 4
+        self.width = width
+        self.height = height
         self.selected = False
 
     def paint(self, win, y, x):
@@ -74,10 +76,10 @@ class Card(object):
 
 
 class Column(List):
-    def __init__(self, name, width):
+    def __init__(self, name, width=25, height=5):
         self.name = name
         self.width = width
-        super().__init__([])
+        super().__init__(height=height)
 
     def add(self, card):
         card.width = self.width
@@ -99,12 +101,12 @@ class Column(List):
 
 
 class Board(List):
-    def __init__(self, name, win, y, x):
+    def __init__(self, name, win, y=0, x=0, width=5):
         self.name = name
         self.win = win
         self.y = y
         self.x = x
-        super().__init__([])
+        super().__init__(height=width)
         self.selected = True
 
     def add(self, column):

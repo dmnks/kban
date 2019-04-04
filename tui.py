@@ -6,10 +6,10 @@ from model import Board, Column, Card
 def main(stdscr):
     curs_set(False)
 
-    board = Board('default', stdscr, 0, 0)
-    col1 = Column('Backlog', 25)
-    col2 = Column('Ready', 25)
-    col3 = Column('Done', 25)
+    board = Board('default', stdscr)
+    col1 = Column('Backlog')
+    col2 = Column('Ready')
+    col3 = Column('Done')
     board.add(col1)
     board.add(col2)
     board.add(col3)
@@ -33,7 +33,6 @@ def main(stdscr):
     col2.add(c8)
     col2.add(c9)
     col3.add(c10)
-    board.viewport = (0, 2)
 
     board.paint()
 
