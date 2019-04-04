@@ -1,18 +1,18 @@
 from curses import curs_set, wrapper
 
-from model import Workflow, Column, Card
+from model import Board, Column, Card
 
 
 def main(stdscr):
     curs_set(False)
 
-    wf = Workflow('default', stdscr, 0, 0)
+    board = Board('default', stdscr, 0, 0)
     col1 = Column('Backlog', 25)
     col2 = Column('Ready', 25)
     col3 = Column('Done', 25)
-    wf.add(col1)
-    wf.add(col2)
-    wf.add(col3)
+    board.add(col1)
+    board.add(col2)
+    board.add(col3)
     c1 = Card('Example card 1')
     c2 = Card('Example card 2')
     c3 = Card('Example card 3')
@@ -33,27 +33,27 @@ def main(stdscr):
     col2.add(c8)
     col2.add(c9)
     col3.add(c10)
-    wf.selected = True
-    wf.viewport = (0, 2)
+    board.selected = True
+    board.viewport = (0, 2)
 
-    wf.paint()
+    board.paint()
 
     while True:
         c = stdscr.getch()
         if c == ord('q'):
             break
         elif c == ord('j'):
-            if wf.down():
-                wf.paint()
+            if board.down():
+                board.paint()
         elif c == ord('k'):
-            if wf.up():
-                wf.paint()
+            if board.up():
+                board.paint()
         elif c == ord('l'):
-            if wf.right():
-                wf.paint()
+            if board.right():
+                board.paint()
         elif c == ord('h'):
-            if wf.left():
-                wf.paint()
+            if board.left():
+                board.paint()
 
 
 wrapper(main)

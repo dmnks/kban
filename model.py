@@ -98,7 +98,7 @@ class Column(List):
             win.addstr(cur, x, '▼'.center(self.width))
 
 
-class Workflow(List):
+class Board(List):
     def __init__(self, name, win, y, x):
         self.name = name
         self.win = win
