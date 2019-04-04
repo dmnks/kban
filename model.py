@@ -83,9 +83,10 @@ class Column(List):
         card.width = self.width
         self._items.append(card)
 
-    def paint(self, win, y, x):
+    def paint(self, win, y, x, title='%s'):
         cur = y
-        win.addstr(cur, x, self.name.center(self.width))
+        title = title % self.name
+        win.addstr(cur, x, title.center(self.width))
         cur += 1
         if self.scrollable % 2:
             win.addstr(cur, x, '▲'.center(self.width))
@@ -123,6 +124,15 @@ class Workflow(List):
     def paint(self):
         self.win.clear()
         cur = self.x
-        for column in self.items:
+        items = list(self.items)
+
+        items[0].paint(self.win, self.y, cur,
+                       '◀ %s' if self.scrollable % 2 else '%s')
+        cur += items[0].width
+
+        for column in items[1:-1]:
             column.paint(self.win, self.y, cur)
             cur += column.width
+
+        items[-1].paint(self.win, self.y, cur,
+                        '%s ▶' if self.scrollable > 1 else '%s')
