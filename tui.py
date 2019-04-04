@@ -33,7 +33,6 @@ def main(stdscr):
     col2.add(c8)
     col2.add(c9)
     col3.add(c10)
-    board.selected = True
     board.viewport = (0, 2)
 
     board.paint()

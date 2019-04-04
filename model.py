@@ -105,6 +105,7 @@ class Board(List):
         self.y = y
         self.x = x
         super().__init__([])
+        self.selected = True
 
     def add(self, column):
         self._items.append(column)
