@@ -34,6 +34,7 @@ def main(stdscr):
     col2.add(c9)
     col3.add(c10)
 
+    board.resize()
     board.paint()
 
     while True:

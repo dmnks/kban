@@ -6,7 +6,7 @@ class List(object):
         if items is None:
             items = []
         self._items = items
-        self.viewport = (0, height)
+        self.height = height
         self.cursor = 0
         self.selected = False
 
@@ -27,6 +27,15 @@ class List(object):
 
         self.cursor = cursor
         return True
+
+    @property
+    def height(self):
+        return self._height
+
+    @height.setter
+    def height(self, val):
+        self._height = val
+        self.viewport = (0, val)
 
     def down(self):
         return self._select(True)
@@ -101,12 +110,14 @@ class Column(List):
 
 
 class Board(List):
-    def __init__(self, name, win, y=0, x=0, width=5):
+    def __init__(self, name, win, y=0, x=0, width=25):
         self.name = name
         self.win = win
         self.y = y
         self.x = x
-        super().__init__(height=width)
+        self._card_height = 4
+        self.width = width
+        super().__init__()
         self.selected = True
 
     def add(self, column):
@@ -124,10 +135,21 @@ class Board(List):
     def up(self):
         return self.item.up()
 
+    def resize(self):
+        self.height = curses.COLS // self.width
+        col_height = (curses.LINES - 3) // self._card_height
+        for column in self._items:
+            column.width = self.width
+            column.height = col_height
+            for card in column._items:
+                card.height = self._card_height
+
     def paint(self):
         self.win.clear()
         cur = self.x
         items = list(self.items)
+        if not items:
+            return
 
         items[0].paint(self.win, self.y, cur,
                        '◀ %s' if self.scrollable % 2 else '%s')
@@ -137,5 +159,7 @@ class Board(List):
             column.paint(self.win, self.y, cur)
             cur += column.width
 
-        items[-1].paint(self.win, self.y, cur,
-                        '%s ▶' if self.scrollable > 1 else '%s')
+        # TODO CONTINUE HERE: fix 1-column case
+        if len(items) > 1:
+            items[-1].paint(self.win, self.y, cur,
+                            '%s ▶' if self.scrollable > 1 else '%s')
