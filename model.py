@@ -145,7 +145,7 @@ class Board(List):
                 card.height = self._card_height
 
     def paint(self):
-        self.win.clear()
+        self.win.erase()
         cur = self.x
         items = list(self.items)
         if not items:
