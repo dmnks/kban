@@ -1,10 +1,11 @@
-from curses import curs_set, wrapper
+import curses
 
 from model import Board, Column, Card
 
 
 def main(stdscr):
-    curs_set(False)
+    curses.curs_set(False)
+    stdscr.clear()
 
     board = Board('default', stdscr)
     col1 = Column('Backlog')
@@ -41,6 +42,9 @@ def main(stdscr):
         c = stdscr.getch()
         if c == ord('q'):
             break
+        elif c == curses.KEY_RESIZE:
+            board.resize()
+            board.paint()
         elif c == ord('j'):
             if board.down():
                 board.paint()
@@ -55,4 +59,4 @@ def main(stdscr):
                 board.paint()
 
 
-wrapper(main)
+curses.wrapper(main)

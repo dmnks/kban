@@ -136,8 +136,9 @@ class Board(List):
         return self.item.up()
 
     def resize(self):
-        self.height = curses.COLS // self.width
-        col_height = (curses.LINES - 3) // self._card_height
+        maxy, maxx = self.win.getmaxyx()
+        self.height = maxx // self.width
+        col_height = (maxy - 3) // self._card_height
         for column in self._items:
             column.width = self.width
             column.height = col_height
@@ -146,6 +147,9 @@ class Board(List):
 
     def paint(self):
         self.win.erase()
+        maxy, maxx = self.win.getmaxyx()
+        if maxy < self._card_height + 4 or maxx < self.width + 1:
+            return
         cur = self.x
         items = list(self.items)
         for i, column in enumerate(items):
@@ -156,3 +160,4 @@ class Board(List):
                 title += ' ▶'
             column.paint(self.win, self.y, cur, title)
             cur += column.width
+        self.win.refresh()
