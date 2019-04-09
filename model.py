@@ -137,13 +137,15 @@ class Board(List):
 
     def resize(self):
         maxy, maxx = self.win.getmaxyx()
-        self.height = maxx // self.width
+        self.height = min(maxx // self.width, len(self._items))
         col_height = (maxy - 3) // self._card_height
         for column in self._items:
             column.width = self.width
             column.height = col_height
             for card in column._items:
                 card.height = self._card_height
+
+        self.x = (maxx - (self.height * self.width)) // 2
 
     def paint(self):
         self.win.erase()
