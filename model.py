@@ -148,18 +148,11 @@ class Board(List):
         self.win.erase()
         cur = self.x
         items = list(self.items)
-        if not items:
-            return
-
-        items[0].paint(self.win, self.y, cur,
-                       '◀ %s' if self.scrollable % 2 else '%s')
-        cur += items[0].width
-
-        for column in items[1:-1]:
-            column.paint(self.win, self.y, cur)
+        for i, column in enumerate(items):
+            title = '%s'
+            if i == 0 and self.scrollable % 2:
+                title = '◀ ' + title
+            if i == len(items) - 1 and self.scrollable > 1:
+                title += ' ▶'
+            column.paint(self.win, self.y, cur, title)
             cur += column.width
-
-        # TODO CONTINUE HERE: fix 1-column case
-        if len(items) > 1:
-            items[-1].paint(self.win, self.y, cur,
-                            '%s ▶' if self.scrollable > 1 else '%s')
