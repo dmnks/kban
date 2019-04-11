@@ -2,67 +2,62 @@ import curses
 
 
 class List(object):
-    def __init__(self, items=None, height=5):
+    SCROLLABLE_LEFT = 1
+    SCROLLABLE_RIGHT = 2
+
+    def __init__(self, items=None, size=5):
         if items is None:
             items = []
         self._items = items
-        self.height = height
+        self.size = size
         self.cursor = 0
-        self.selected = False
+        self.enabled = False
 
-    def _select(self, down):
-        cursor = self.cursor
-        delta = 1 if down else -1
-        vdelta = 0
+    @property
+    def size(self):
+        return self._size
 
-        cursor += delta
-        if cursor == -1 or cursor == len(self._items):
-            return False
-        if cursor == self.viewport[0] - 1:
-            vdelta = -1
-        if cursor == self.viewport[1]:
-            vdelta = 1
-        if vdelta != 0:
-            self.viewport = tuple(map(lambda x: x + vdelta, self.viewport))
+    @size.setter
+    def size(self, val):
+        self._size = val
+        self._viewport = (0, val)
 
-        self.cursor = cursor
+    @property
+    def cursor(self):
+        return self._cursor
+
+    @cursor.setter
+    def cursor(self, val):
+        val = max(0, min(val, len(self._items) - 1))
+        self._cursor = val
+        delta = val - self._viewport[0]
+        if delta > self.size:
+            self._viewport = (val - self.size, val)
+        elif delta < 0:
+            self._viewport = (val, val + self.size)
         return True
 
     @property
-    def height(self):
-        return self._height
-
-    @height.setter
-    def height(self, val):
-        self._height = val
-        self.viewport = (0, val)
-
-    def down(self):
-        return self._select(True)
-
-    def up(self):
-        return self._select(False)
-
-    @property
-    def item(self):
+    def selected(self):
+        if not self._items:
+            return None
         return self._items[self.cursor]
 
-    @property
-    def items(self):
-        start, end = self.viewport
+    def __iter__(self):
+        start, end = self._viewport
         for i, item in enumerate(self._items[start:end]):
-            item.selected = self.selected and (i + start) == self.cursor
+            item.selected = self.enabled and (i + start) == self.cursor
             yield item
 
     @property
     def scrollable(self):
-        code = 0
-        start, end = self.viewport
+        flags = 0
+        start, end = self._viewport
         if start > 0:
-            code = 1
+            flags = List.SCROLLABLE_LEFT
         if end < len(self._items):
-            code += 2
-        return code
+            flags |= List.SCROLLABLE_RIGHT
+        return flags
 
 
 class Card(object):
@@ -88,7 +83,7 @@ class Column(List):
     def __init__(self, name, width=25, height=5):
         self.name = name
         self.width = width
-        super().__init__(height=height)
+        super().__init__(size=height)
 
     def add(self, card):
         card.width = self.width
