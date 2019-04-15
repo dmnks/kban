@@ -11,7 +11,7 @@ class List(object):
         self._items = items
         self.size = size
         self.cursor = 0
-        self.enabled = False
+        self.selected = False
 
     @property
     def size(self):
@@ -28,26 +28,32 @@ class List(object):
 
     @cursor.setter
     def cursor(self, val):
-        val = max(0, min(val, len(self._items) - 1))
+        val = max(0, min(val, len(self) - 1))
         self._cursor = val
         delta = val - self._viewport[0]
-        if delta > self.size:
-            self._viewport = (val - self.size, val)
+        if delta >= self.size:
+            self._viewport = (val - self.size + 1, val + 1)
         elif delta < 0:
             self._viewport = (val, val + self.size)
-        return True
 
     @property
     def selected(self):
-        if not self._items:
+        if not self:
             return None
         return self._items[self.cursor]
+
+    @selected.setter
+    def selected(self, val):
+        self._selected = val
 
     def __iter__(self):
         start, end = self._viewport
         for i, item in enumerate(self._items[start:end]):
-            item.selected = self.enabled and (i + start) == self.cursor
+            item.selected = self._selected and (i + start) == self.cursor
             yield item
+
+    def __len__(self):
+        return len(self._items)
 
     @property
     def scrollable(self):
@@ -55,7 +61,7 @@ class List(object):
         start, end = self._viewport
         if start > 0:
             flags = List.SCROLLABLE_LEFT
-        if end < len(self._items):
+        if end < len(self):
             flags |= List.SCROLLABLE_RIGHT
         return flags
 
@@ -80,10 +86,10 @@ class Card(object):
 
 
 class Column(List):
-    def __init__(self, name, width=25, height=5):
+    def __init__(self, name, width=25, size=5):
         self.name = name
         self.width = width
-        super().__init__(size=height)
+        super().__init__(size=size)
 
     def add(self, card):
         card.width = self.width
@@ -94,66 +100,67 @@ class Column(List):
         title = title % self.name
         win.addstr(cur, x, title.center(self.width))
         cur += 1
-        if self.scrollable % 2:
+        if self.scrollable & List.SCROLLABLE_LEFT:
             win.addstr(cur, x, '▲'.center(self.width))
         cur += 1
-        for card in self.items:
+        for card in self:
             card.paint(win, cur, x)
             cur += card.height
-        if self.scrollable > 1:
+        if self.scrollable & List.SCROLLABLE_RIGHT:
             win.addstr(cur, x, '▼'.center(self.width))
 
 
 class Board(List):
-    def __init__(self, name, win, y=0, x=0, width=25):
+    def __init__(self, name, win, y=0, x=0, colwidth=25):
         self.name = name
         self.win = win
         self.y = y
         self.x = x
-        self._card_height = 4
-        self.width = width
+        self.colwidth = colwidth
         super().__init__()
         self.selected = True
 
     def add(self, column):
+        column.width = self.colwidth
         self._items.append(column)
 
     def right(self):
-        return super().down()
+        self.cursor += 1
 
     def left(self):
-        return super().up()
+        self.cursor -= 1
 
     def down(self):
-        return self.item.down()
+        if self.selected is not None:
+            self.selected.cursor += 1
 
     def up(self):
-        return self.item.up()
+        if self.selected is not None:
+            self.selected.cursor -= 1
 
     def resize(self):
         maxy, maxx = self.win.getmaxyx()
-        self.height = min(maxx // self.width, len(self._items))
-        col_height = (maxy - 3) // self._card_height
-        for column in self._items:
-            column.width = self.width
-            column.height = col_height
-            for card in column._items:
-                card.height = self._card_height
+        self.size = min(maxx // self.colwidth, len(self))
+        colheight = (maxy - 3) // 4
+        for column in self:
+            column.size = colheight
+            for card in column:
+                card.height = 4
 
-        self.x = (maxx - (self.height * self.width)) // 2
+        self.x = (maxx - (self.size * self.colwidth)) // 2
 
     def paint(self):
         self.win.erase()
         maxy, maxx = self.win.getmaxyx()
-        if maxy < self._card_height + 4 or maxx < self.width + 1:
+        if maxy < 4 + 4 or maxx < self.colwidth + 1:
             return
         cur = self.x
-        items = list(self.items)
+        items = list(self)
         for i, column in enumerate(items):
             title = '%s'
-            if i == 0 and self.scrollable % 2:
+            if i == 0 and self.scrollable & List.SCROLLABLE_LEFT:
                 title = '◀ ' + title
-            if i == len(items) - 1 and self.scrollable > 1:
+            if i == len(items) - 1 and self.scrollable & List.SCROLLABLE_RIGHT:
                 title += ' ▶'
             column.paint(self.win, self.y, cur, title)
             cur += column.width

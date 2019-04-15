@@ -46,17 +46,17 @@ def main(stdscr):
             board.resize()
             board.paint()
         elif c == ord('j'):
-            if board.down():
-                board.paint()
+            board.down()
+            board.paint()
         elif c == ord('k'):
-            if board.up():
-                board.paint()
+            board.up()
+            board.paint()
         elif c == ord('l'):
-            if board.right():
-                board.paint()
+            board.right()
+            board.paint()
         elif c == ord('h'):
-            if board.left():
-                board.paint()
+            board.left()
+            board.paint()
 
 
 curses.wrapper(main)
