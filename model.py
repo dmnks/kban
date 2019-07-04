@@ -40,6 +40,15 @@ class List(object):
             return None
         return self[self.cursor]
 
+    def push(self, item):
+        self._items.insert(0, item)
+
+    def pop(self):
+        item = self.item
+        del self._items[self.cursor]
+        self.cursor += 1
+        return item
+
     def __getitem__(self, index):
         return self._items[index]
 
@@ -93,9 +102,6 @@ class Column(List):
             return 0
         return self[0].width
 
-    def add(self, card):
-        self._items.append(card)
-
     def paint(self, win, y, x, title='%s'):
         cur = y
         title = title % self.name
@@ -135,9 +141,6 @@ class Board(List):
             return 0
         return col[0].height
 
-    def add(self, column):
-        self._items.append(column)
-
     def right(self):
         self.cursor += 1
 
@@ -151,6 +154,13 @@ class Board(List):
     def up(self):
         if self.item is not None:
             self.item.cursor -= 1
+
+    def promote(self):
+        if self.item is None:
+            return
+        card = self.item.pop()
+        self.right()
+        self.item.push(card)
 
     def resize(self):
         my, mx = self.win.getmaxyx()
