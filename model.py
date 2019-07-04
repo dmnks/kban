@@ -38,9 +38,13 @@ class List(object):
     def item(self):
         if not self:
             return None
-        return self._items[self.cursor]
+        return self[self.cursor]
 
-    def __iter__(self):
+    def __getitem__(self, index):
+        return self._items[index]
+
+    @property
+    def visible(self):
         start, end = self._viewport
         for i, item in enumerate(self._items[start:end]):
             item.selected = self.selected and (i + start) == self.cursor
@@ -87,7 +91,7 @@ class Column(List):
     def width(self):
         if not self:
             return 0
-        return self._items[0].width
+        return self[0].width
 
     def add(self, card):
         self._items.append(card)
@@ -100,7 +104,7 @@ class Column(List):
         if self.scrollable & List.SCROLLABLE_LEFT:
             win.addstr(cur, x, '^' * self.width)
         cur += 1
-        for card in self:
+        for card in self.visible:
             card.paint(win, cur, x)
             cur += card.height
         if self.scrollable & List.SCROLLABLE_RIGHT:
@@ -120,16 +124,16 @@ class Board(List):
     def colwidth(self):
         if not self:
             return 0
-        return self._items[0].width
+        return self[0].width
 
     @property
     def cardheight(self):
         if not self:
             return 0
-        col = self._items[0]
+        col = self[0]
         if not col:
             return 0
-        return col._items[0].height
+        return col[0].height
 
     def add(self, column):
         self._items.append(column)
@@ -152,7 +156,7 @@ class Board(List):
         my, mx = self.win.getmaxyx()
         self.size = min(mx // self.colwidth, len(self))
         colsize = (my - 3) // self.cardheight
-        for column in self._items:
+        for column in self:
             column.size = colsize
         self.x = (mx - (self.size * self.colwidth)) // 2
 
@@ -162,7 +166,7 @@ class Board(List):
         if my < self.cardheight + 4 or mx < self.colwidth + 1:
             return
         cur = self.x
-        items = list(self)
+        items = list(self.visible)
         for i, column in enumerate(items):
             title = '%s'
             if i == 0 and self.scrollable & List.SCROLLABLE_LEFT:
