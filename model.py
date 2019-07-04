@@ -98,13 +98,13 @@ class Column(List):
         win.addstr(cur, x, title.center(self.width))
         cur += 1
         if self.scrollable & List.SCROLLABLE_LEFT:
-            win.addstr(cur, x, '^^^'.center(self.width))
+            win.addstr(cur, x, '^' * self.width)
         cur += 1
         for card in self:
             card.paint(win, cur, x)
             cur += card.height
         if self.scrollable & List.SCROLLABLE_RIGHT:
-            win.addstr(cur, x, 'vvv'.center(self.width))
+            win.addstr(cur, x, 'v' * self.width)
 
 
 class Board(List):
