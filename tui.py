@@ -62,6 +62,9 @@ def main(stdscr):
         elif c == ord('L'):
             board.promote()
             board.paint()
+        elif c == ord('H'):
+            board.denote()
+            board.paint()
 
 
 curses.wrapper(main)

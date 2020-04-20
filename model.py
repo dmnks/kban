@@ -1,5 +1,8 @@
 import curses
 
+CARD_WIDTH = 25
+CARD_HEIGHT = 4
+
 
 class List(object):
     SCROLLABLE_LEFT = 1
@@ -7,56 +10,69 @@ class List(object):
 
     def __init__(self):
         self._items = []
-        self.size = 0
+        self._cursor = 0
+        self._viewport = (0, 0)
         self.selected = False
 
     @property
     def size(self):
-        return self._size
+        return self._viewport[1]
 
     @size.setter
     def size(self, val):
-        self._size = val
         self._viewport = (0, val)
-        self.cursor = 0
+        if self._cursor not in range(self._viewport[1]):
+            self._cursor = self._viewport[1] - 1
+
+    def next(self):
+        if (self._cursor == len(self) - 1):
+            return
+        self._cursor += 1
+        if (self._cursor == self._viewport[1]):
+            self._viewport = tuple(map(lambda x: x + 1, self._viewport))
+
+    def prev(self):
+        if (self._cursor == 0):
+            return
+        self._cursor -= 1
+        if (self._cursor < self._viewport[0]):
+            self._viewport = tuple(map(lambda x: x - 1, self._viewport))
 
     @property
-    def cursor(self):
-        return self._cursor
+    def offset(self):
+        return self._cursor - self._viewport[0]
 
-    @cursor.setter
-    def cursor(self, val):
-        val = max(0, min(val, len(self) - 1))
-        self._cursor = val
-        delta = val - self._viewport[0]
-        if delta >= self._size:
-            self._viewport = (val - self._size + 1, val + 1)
-        elif delta < 0:
-            self._viewport = (val, val + self._size)
+    @offset.setter
+    def offset(self, val):
+        self._cursor = max(0, min(self._viewport[0] + val,
+                                  self._viewport[1] - 1,
+                                  len(self) - 1))
 
     @property
-    def item(self):
-        if not self:
+    def current(self):
+        if not self._items:
             return None
-        return self[self.cursor]
+        return self[self._cursor]
 
     def push(self, item):
         self._items.insert(0, item)
 
     def pop(self):
-        item = self.item
-        del self._items[self.cursor]
-        self.cursor += 1
+        item = self.current
+        if item is None:
+            return None
+        del self._items[self._cursor]
+        if self._cursor == len(self):
+            self.prev()
         return item
 
     def __getitem__(self, index):
         return self._items[index]
 
-    @property
-    def visible(self):
+    def __iter__(self):
         start, end = self._viewport
         for i, item in enumerate(self._items[start:end]):
-            item.selected = self.selected and (i + start) == self.cursor
+            item.selected = self.selected and (i + start) == self._cursor
             yield item
 
     def __len__(self):
@@ -74,10 +90,10 @@ class List(object):
 
 
 class Card(object):
-    def __init__(self, name, width=25, height=4):
+    def __init__(self, name):
         self.name = name
-        self.width = width
-        self.height = height
+        self.width = CARD_WIDTH
+        self.height = CARD_HEIGHT
         self.selected = False
 
     def paint(self, win, y, x):
@@ -98,19 +114,18 @@ class Column(List):
 
     @property
     def width(self):
-        if not self:
-            return 0
-        return self[0].width
+        return CARD_WIDTH
 
     def paint(self, win, y, x, title='%s'):
         cur = y
         title = title % self.name
-        win.addstr(cur, x, title.center(self.width))
+        win.addstr(cur, x, title.center(self.width),
+                   curses.A_REVERSE if self.selected else 0)
         cur += 1
         if self.scrollable & List.SCROLLABLE_LEFT:
             win.addstr(cur, x, '^' * self.width)
         cur += 1
-        for card in self.visible:
+        for card in self:
             card.paint(win, cur, x)
             cur += card.height
         if self.scrollable & List.SCROLLABLE_RIGHT:
@@ -128,45 +143,51 @@ class Board(List):
 
     @property
     def colwidth(self):
-        if not self:
-            return 0
-        return self[0].width
+        return CARD_WIDTH
 
     @property
     def cardheight(self):
-        if not self:
-            return 0
-        col = self[0]
-        if not col:
-            return 0
-        return col[0].height
+        return CARD_HEIGHT
 
     def right(self):
-        self.cursor += 1
+        offset = self.current.offset
+        self.next()
+        self.current.offset = offset
 
     def left(self):
-        self.cursor -= 1
+        offset = self.current.offset
+        self.prev()
+        self.current.offset = offset
 
     def down(self):
-        if self.item is not None:
-            self.item.cursor += 1
+        if self.current is not None:
+            self.current.next()
 
     def up(self):
-        if self.item is not None:
-            self.item.cursor -= 1
+        if self.current is not None:
+            self.current.prev()
 
     def promote(self):
-        if self.item is None:
+        if self.current is None:
             return
-        card = self.item.pop()
+        card = self.current.pop()
         self.right()
-        self.item.push(card)
+        if card is not None:
+            self.current.push(card)
+
+    def denote(self):
+        if self.current is None:
+            return
+        card = self.current.pop()
+        self.left()
+        if card is not None:
+            self.current.push(card)
 
     def resize(self):
         my, mx = self.win.getmaxyx()
         self.size = min(mx // self.colwidth, len(self))
         colsize = (my - 3) // self.cardheight
-        for column in self:
+        for column in self._items:
             column.size = colsize
         self.x = (mx - (self.size * self.colwidth)) // 2
 
@@ -176,7 +197,7 @@ class Board(List):
         if my < self.cardheight + 4 or mx < self.colwidth + 1:
             return
         cur = self.x
-        items = list(self.visible)
+        items = list(self)
         for i, column in enumerate(items):
             title = '%s'
             if i == 0 and self.scrollable & List.SCROLLABLE_LEFT:
