@@ -97,14 +97,10 @@ class Card(object):
         self.selected = False
 
     def paint(self, win, y, x):
-        reverse = curses.A_REVERSE if self.selected else 0
-        win.addstr(y, x, ' ' * self.width, reverse)
-        win.addstr(y + 1, x, self.name.center(self.width), reverse)
-        for i in range(self.height - 3):
-            win.addstr(y + 2 + i, x, ' ' * self.width, reverse)
-        if reverse:
-            win.addstr(y + (self.height - 1), x, ' ' * self.width,
-                       curses.A_REVERSE)
+        attr = curses.A_REVERSE if self.selected else 0
+        win.addstr(y, x, self.name.center(self.width), attr)
+        for i in range(self.height):
+            win.addstr(y + 1 + i, x, ' ' * self.width, attr)
 
 
 class Column(List):
@@ -118,8 +114,8 @@ class Column(List):
 
     def paint(self, win, y, x, title='%s'):
         cur = y
-        title = title % self.name
-        win.addstr(cur, x, title.center(self.width),
+        title = ' %s ' % (title % self.name)
+        win.addstr(cur, x + ((self.width - len(title)) // 2), title,
                    curses.A_REVERSE if self.selected else 0)
         cur += 1
         if self.scrollable & List.SCROLLABLE_LEFT:
@@ -172,16 +168,20 @@ class Board(List):
             return
         card = self.current.pop()
         self.right()
-        if card is not None:
-            self.current.push(card)
+        if card is None:
+            return
+        self.current.push(card)
+        self.current.offset = 0
 
     def denote(self):
         if self.current is None:
             return
         card = self.current.pop()
         self.left()
-        if card is not None:
-            self.current.push(card)
+        if card is None:
+            return
+        self.current.push(card)
+        self.current.offset = 0
 
     def resize(self):
         my, mx = self.win.getmaxyx()
@@ -205,5 +205,5 @@ class Board(List):
             if i == len(items) - 1 and self.scrollable & List.SCROLLABLE_RIGHT:
                 title += ' >'
             column.paint(self.win, self.y, cur, title)
-            cur += column.width
+            cur += column.width + 2
         self.win.refresh()
